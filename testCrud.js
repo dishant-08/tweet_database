@@ -12,8 +12,6 @@ async function createUser() {
     content: "Onigiri , Three thousand ",
     posted_at: new Date(),
     user_id: user.id,
-
-    type: "post",
   });
 
   const Like = await like.create({
@@ -27,38 +25,38 @@ async function createUser() {
 createUser();
 
 //read
-async function fetchData() {
-  const user = await User.findAll();
-  console.log(JSON.stringify(user, null, 2));
-}
+// async function fetchData() {
+//   const user = await User.findAll();
+//   console.log(JSON.stringify(user, null, 2));
+// }
 
-fetchData();
+// fetchData();
 
-//update
-async function updateData() {
-  await User.update(
-    { username: "Mihawk", display_name: "Dracula" },
-    {
-      where: {
-        id: 2,
-      },
-    }
-  );
-}
-updateData();
+// //update
+// async function updateData() {
+//   await User.update(
+//     { username: "Mihawk", display_name: "Dracula" },
+//     {
+//       where: {
+//         id: 2,
+//       },
+//     }
+//   );
+// }
+// updateData();
 
-//delete
-async function deleteData() {
-  await like.destroy({
-    where: {
-      post_id: 2,
-    },
-  }),
-    await Post.destroy({
-      where: {
-        id: 2,
-      },
-    });
-}
+// //delete
+// async function deleteData() {
+//   await like.destroy({
+//     where: {
+//       post_id: 2,
+//     },
+//   }),
+//     await Post.destroy({
+//       where: {
+//         id: 2,
+//       },
+//     });
+// }
 
-deleteData();
+// deleteData();

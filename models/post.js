@@ -40,9 +40,9 @@ module.exports = (sequelize, DataTypes) => {
           key: "id",
         },
       },
-      type: {
-        type: DataTypes.ENUM("post", "repost"),
-        allowNull: false,
+      reply_id: {
+        type: DataTypes.BIGINT,
+        allowNull: true,
       },
     },
     {

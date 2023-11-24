@@ -7,7 +7,7 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
       },
       content: {
         type: Sequelize.TEXT,
@@ -30,9 +30,9 @@ module.exports = {
           key: "id",
         },
       },
-      type: {
-        type: Sequelize.ENUM("post", "repost"),
-        allowNull: false,
+      reply_id: {
+        type: Sequelize.BIGINT,
+        allowNull: true,
       },
       createdAt: {
         allowNull: false,
@@ -46,6 +46,7 @@ module.exports = {
   },
   async down(queryInterface, Sequelize) {
     // await queryInterface.renameColumn("Posts", "post_id", "repost_id");
+
     await queryInterface.dropTable("Posts");
   },
 };
