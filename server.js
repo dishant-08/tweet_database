@@ -71,15 +71,11 @@ app.post("/api/login", async (req, res) => {
       return res.status(404).send("Invalid Password");
     }
 
-    // Check if the connection is secure (HTTPS) before setting secure: true
-    // const isSecureConnection =
-    //   req.secure || req.headers["x-forwarded-proto"] === "https";
-
     res.cookie("cur_user", abhiWlaUser.id, {
       httpOnly: true,
       maxAge: 3600000,
       secure: true, // Required for "None" sameSite in most browsers
-      // sameSite: "None",
+      sameSite: "None",
     });
 
     res.status(200).send("Logged in Successfully");
@@ -91,6 +87,7 @@ app.post("/api/login", async (req, res) => {
 
 const authenticateUser = async (req, res, next) => {
   const validUser = req.cookies.cur_user;
+
   if (!validUser) {
     return res.status(401).send("Unauthorizzed");
   }
