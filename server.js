@@ -11,12 +11,12 @@ const app = express(); // Instance of the server
 const port = process.env.PORT;
 // app.use(cors());
 
-// app.use(
-//   cors({
-//     origin: ["http://localhost:5173"], // Add other origins as needed
-//     credentials: true,
-//   })
-// );
+app.use(
+  cors({
+    origin: "*", // Add other origins as needed
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -54,6 +54,7 @@ app.post("/api/signup", async (req, res) => {
 });
 
 app.post("/api/login", async (req, res) => {
+  console.log("Request Body:", req.body); // Add this line for debugging
   const { email, password } = req.body;
   try {
     const abhiWlaUser = await User.findOne({ where: { email } });
