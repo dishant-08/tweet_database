@@ -5,9 +5,11 @@ const db = require("./models/index.js");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
+const cors = require("cors");
 
 const app = express(); // Instance of the server
 const port = process.env.PORT;
+app.use(cors());
 
 app.use(express.json());
 app.use(cookieParser());
