@@ -64,13 +64,14 @@ app.post("/api/login", async (req, res) => {
     }
 
     // Check if the connection is secure (HTTPS) before setting secure: true
-    const isSecureConnection =
-      req.secure || req.headers["x-forwarded-proto"] === "https";
+    // const isSecureConnection =
+    //   req.secure || req.headers["x-forwarded-proto"] === "https";
 
     res.cookie("cur_user", abhiWlaUser.id, {
       httpOnly: true,
       maxAge: 3600000,
-      secure: isSecureConnection,
+      secure: true, // Required for "None" sameSite in most browsers
+      sameSite: "None",
     });
 
     res.status(200).send("Logged in Successfully");
