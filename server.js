@@ -4,9 +4,10 @@ const { User, Post, like } = require("./models");
 const db = require("./models/index.js");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
+require("dotenv").config();
 
 const app = express(); // Instance of the server
-const port = 4000;
+const port = process.env.PORT;
 
 app.use(express.json());
 app.use(cookieParser());
