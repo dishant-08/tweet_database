@@ -54,25 +54,29 @@ app.post("/api/login", async (req, res) => {
       return res.status(400).send("Invalid email");
     }
 
-    const ValidPassword = await bcrypt.compare(
+    const validPassword = await bcrypt.compare(
       password,
       abhiWlaUser.password_hash
     );
 
-    if (!ValidPassword) {
+    if (!validPassword) {
       return res.status(404).send("Invalid Password");
     }
+
+    // Check if the connection is secure (HTTPS) before setting secure: true
+    const isSecureConnection =
+      req.secure || req.headers["x-forwarded-proto"] === "https";
 
     res.cookie("cur_user", abhiWlaUser.id, {
       httpOnly: true,
       maxAge: 3600000,
-      // Important for cross-site cookies
-      secure: true, // Important if your app is served over HTTPS
+      sameSite: "None",
+      secure: isSecureConnection,
     });
 
-    res.status(200).send("Logged in SucessFully");
+    res.status(200).send("Logged in Successfully");
   } catch (error) {
-    console.error("Error during ", error);
+    console.error("Error during login:", error);
     res.status(500).send("Server Error");
   }
 });
