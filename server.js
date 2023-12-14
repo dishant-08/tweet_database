@@ -70,7 +70,6 @@ app.post("/api/login", async (req, res) => {
     res.cookie("cur_user", abhiWlaUser.id, {
       httpOnly: true,
       maxAge: 3600000,
-      sameSite: "None",
       secure: isSecureConnection,
     });
 
