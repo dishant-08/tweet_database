@@ -66,7 +66,7 @@ app.post("/api/login", async (req, res) => {
     res.cookie("cur_user", abhiWlaUser.id, {
       httpOnly: true,
       maxAge: 3600000,
-      sameSite: "None", // Important for cross-site cookies
+      // Important for cross-site cookies
       secure: true, // Important if your app is served over HTTPS
     });
 
