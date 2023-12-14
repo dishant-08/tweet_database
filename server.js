@@ -9,14 +9,14 @@ const cors = require("cors");
 
 const app = express(); // Instance of the server
 const port = process.env.PORT;
-app.use(cors());
+// app.use(cors());
 
-app.use(
-  cors({
-    origin: ["http://localhost:5173"], // Add other origins as needed
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: ["http://localhost:5173"], // Add other origins as needed
+//     credentials: true,
+//   })
+// );
 
 app.use(express.json());
 app.use(cookieParser());
@@ -78,7 +78,7 @@ app.post("/api/login", async (req, res) => {
       httpOnly: true,
       maxAge: 3600000,
       secure: true, // Required for "None" sameSite in most browsers
-      sameSite: "None",
+      // sameSite: "None",
     });
 
     res.status(200).send("Logged in Successfully");
