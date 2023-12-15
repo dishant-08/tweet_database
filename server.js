@@ -206,6 +206,24 @@ app.get("/api/getUser/:username", authenticateUser, async (req, res) => {
   }
 });
 
+app.get("/api/getUserbyId/:id", authenticateUser, async (req, res) => {
+  const curr_user_id = req.params.id;
+  try {
+    const UserDetails = await User.findOne({
+      where: {
+        id: curr_user_id,
+      },
+    });
+    res.status(200).json({
+      currUser: UserDetails.username,
+      disName: UserDetails.display_name,
+    });
+  } catch (error) {
+    console.error("Error at Fetching user", error);
+    res.status(500).send({ error: "Failed to fetch user" });
+  }
+});
+
 app.put("/api/editUser", authenticateUser, async (req, res) => {
   try {
     await User.update(
