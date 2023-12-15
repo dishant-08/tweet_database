@@ -13,7 +13,7 @@ const port = process.env.PORT;
 
 app.use(
   cors({
-    origin: "*", // Add other origins as needed
+    origin: true, // Add other origins as needed
     credentials: true,
   })
 );
