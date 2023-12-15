@@ -11,15 +11,19 @@ const app = express(); // Instance of the server
 const port = process.env.PORT;
 // app.use(cors());
 
-app.use(
-  cors({
-    origin: true, // Add other origins as needed
-    credentials: true,
-  })
-);
-
 app.use(express.json());
 app.use(cookieParser());
+
+const corsOptions = {
+  origin: [
+    "http://localhost:5173",
+    "https://react-week-1-dishant-08-hbrg-gv3jw5f72-dishant-08s-projects.vercel.app",
+  ],
+  credentials: true,
+  exposedHeaders: ["Set-Cookie"], // Expose the Set-Cookie header
+};
+
+app.use(cors(corsOptions));
 
 app.get("/healthcheck", async (req, res) => {
   try {
