@@ -59,7 +59,7 @@ app.post("/api/signup", async (req, res) => {
 });
 
 app.post("/api/login", async (req, res) => {
-  console.log("Request Body:", req.body); // Add this line for debugging
+  // console.log("Request Body:", req.body); // Add this line for debugging
   const { email, password } = req.body;
   try {
     const abhiWlaUser = await User.findOne({ where: { email } });
@@ -173,6 +173,36 @@ app.get("/api/getLike/:id", authenticateUser, async (req, res) => {
   } catch (error) {
     console.error("Error at Fetching Like Count", error);
     res.status(500).send({ error: "Failed to fetch liked post" });
+  }
+});
+app.get("/api/curuser", authenticateUser, async (req, res) => {
+  try {
+    const UserDetails = await User.findOne({
+      where: {
+        id: req.current_user.id,
+      },
+    });
+    res.status(200).json({
+      currUser: UserDetails.username,
+      disName: UserDetails.display_name,
+    });
+  } catch (error) {
+    console.error("Error at Fetching user", error);
+    res.status(500).send({ error: "Failed to fetch user" });
+  }
+});
+app.get("/api/getUser/:username", authenticateUser, async (req, res) => {
+  const curr_user_username = req.params.username;
+  try {
+    const UserDetails = await User.findOne({
+      where: {
+        username: curr_user_username,
+      },
+    });
+    res.status(200).json({ user: UserDetails });
+  } catch (error) {
+    console.error("Error at Fetching user", error);
+    res.status(500).send({ error: "Failed to fetch user" });
   }
 });
 
