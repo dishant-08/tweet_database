@@ -13,12 +13,13 @@ const port = process.env.PORT;
 
 app.use(express.json());
 app.use(cookieParser());
+// origin: [
+//   "http://localhost:5173",
+//   "https://react-week-1-dishant-08-hbrg-gv3jw5f72-dishant-08s-projects.vercel.app",
+// ],
 
 const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "https://react-week-1-dishant-08-hbrg-gv3jw5f72-dishant-08s-projects.vercel.app",
-  ],
+  origin: true,
   credentials: true,
   exposedHeaders: ["Set-Cookie"], // Expose the Set-Cookie header
 };
