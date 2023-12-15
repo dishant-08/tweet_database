@@ -206,6 +206,30 @@ app.get("/api/getUser/:username", authenticateUser, async (req, res) => {
   }
 });
 
+app.put("/api/editUser", authenticateUser, async (req, res) => {
+  try {
+    await User.update(
+      {
+        display_name: req.body.display_name,
+        bio: req.body.bio,
+        location: req.body.location,
+        website: req.body.website,
+        profile_picture: req.body.profile_picture,
+        cover_picture: req.body.cover_picture,
+      },
+      {
+        where: {
+          id: req.current_user.id,
+        },
+      }
+    );
+    res.status(200).send({ message: "User updated successfully" });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).send({ error: "Failed to update user" });
+  }
+});
+
 app.listen(port, () => {
   console.log("Server is running on port", port);
 });
