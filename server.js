@@ -248,6 +248,22 @@ app.put("/api/editUser", authenticateUser, async (req, res) => {
   }
 });
 
+app.get("/api/geteditcuruser", authenticateUser, async (req, res) => {
+  try {
+    const UserDetails = await User.findOne({
+      where: {
+        id: req.current_user.id,
+      },
+    });
+    res.status(200).json({
+      user: UserDetails,
+    });
+  } catch (error) {
+    console.error("Error at Fetching user", error);
+    res.status(500).send({ error: "Failed to fetch user" });
+  }
+});
+
 app.listen(port, () => {
   console.log("Server is running on port", port);
 });
