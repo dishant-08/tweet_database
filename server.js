@@ -1,6 +1,6 @@
 const express = require("express");
 // const sequelize = require("sequelize");
-const { User, Post, like } = require("./models");
+const { User, Post, like, follow } = require("./models");
 const db = require("./models/index.js");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
@@ -128,6 +128,48 @@ app.post("/api/post", authenticateUser, async (req, res) => {
   }
 });
 
+app.post("/api/follow", authenticateUser, async (req, res) => {
+  try {
+    await follow.create({
+      follower_user_id: req.current_user.id,
+      following_user_id: req.body.following_id,
+    });
+    res.status(201).send({ message: " You Succesfully followed " });
+  } catch (error) {
+    console.error("Error following user:", error);
+    res.status(500).send({ error: "Failed to follow" });
+  }
+});
+app.post("/api/unfollow", authenticateUser, async (req, res) => {
+  try {
+    await follow.destroy({
+      where: {
+        follower_user_id: req.current_user.id,
+        following_user_id: req.body.following_id,
+      },
+    });
+    res.status(204).send({ message: " You Succesfully Unfollowed " });
+  } catch (error) {
+    console.error("Error unfollowing user:", error);
+    res.status(500).send({ error: "Failed to follow" });
+  }
+});
+
+app.get("/api/checkFollowStatus", authenticateUser, async (req, res) => {
+  try {
+    const followEntry = await follow.findOne({
+      where: {
+        follower_user_id: req.current_user.id,
+        following_user_id: req.query.following_id,
+      },
+    });
+    res.status(200).json({ status: !!followEntry });
+  } catch (error) {
+    console.error("Error getting Status", error);
+    res.status(500).send({ error: "Failed to get status" });
+  }
+});
+
 app.post("/api/like", authenticateUser, async (req, res) => {
   try {
     await like.create({
@@ -183,8 +225,25 @@ app.get("/api/curuser", authenticateUser, async (req, res) => {
       },
     });
     res.status(200).json({
+      id: UserDetails.id,
       currUser: UserDetails.username,
       disName: UserDetails.display_name,
+      dp: UserDetails.profile_picture,
+    });
+  } catch (error) {
+    console.error("Error at Fetching user", error);
+    res.status(500).send({ error: "Failed to fetch user" });
+  }
+});
+app.get("/api/geteditcuruser", authenticateUser, async (req, res) => {
+  try {
+    const UserDetails = await User.findOne({
+      where: {
+        id: req.current_user.id,
+      },
+    });
+    res.status(200).json({
+      user: UserDetails,
     });
   } catch (error) {
     console.error("Error at Fetching user", error);
@@ -203,6 +262,47 @@ app.get("/api/getUser/:username", authenticateUser, async (req, res) => {
   } catch (error) {
     console.error("Error at Fetching user", error);
     res.status(500).send({ error: "Failed to fetch user" });
+  }
+});
+app.get("/api/getUserbyId/:id", authenticateUser, async (req, res) => {
+  const curr_user_id = req.params.id;
+  try {
+    const UserDetails = await User.findOne({
+      where: {
+        id: curr_user_id,
+      },
+    });
+    res.status(200).json({
+      currUser: UserDetails.username,
+      disName: UserDetails.display_name,
+    });
+  } catch (error) {
+    console.error("Error at Fetching user", error);
+    res.status(500).send({ error: "Failed to fetch user" });
+  }
+});
+
+app.put("/api/editUser", authenticateUser, async (req, res) => {
+  try {
+    await User.update(
+      {
+        display_name: req.body.display_name,
+        bio: req.body.bio,
+        location: req.body.location,
+        website: req.body.website,
+        profile_picture: req.body.profile_picture,
+        cover_picture: req.body.cover_picture,
+      },
+      {
+        where: {
+          id: req.current_user.id,
+        },
+      }
+    );
+    res.status(200).send({ message: "User updated successfully" });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).send({ error: "Failed to update user" });
   }
 });
 
