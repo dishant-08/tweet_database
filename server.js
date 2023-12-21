@@ -301,31 +301,35 @@ app.put(
       const { display_name, bio, location, website } = req.body;
 
       // Check if files were uploaded
-      const profilePicture = req.files["profile_picture"]
-        ? req.files["profile_picture"][0]
-        : null;
-      const coverPicture = req.files["cover_picture"]
-        ? req.files["cover_picture"][0]
-        : null;
+      const profilePictureBuffer =
+        req.files["profile_picture"]?.[0]?.buffer || null;
+      const coverPictureBuffer =
+        req.files["cover_picture"]?.[0]?.buffer || null;
 
       // Your file handling logic here (e.g., saving to disk, processing, etc.)
 
       // Update user information in the database
-      await User.update(
-        {
-          display_name,
-          bio,
-          location,
-          website,
-          profile_picture: profilePicture ? profilePicture.buffer : null,
-          cover_picture: coverPicture ? coverPicture.buffer : null,
+      const updateFields = {
+        display_name,
+        bio,
+        location,
+        website,
+      };
+
+      // Only update image fields if new images are provided
+      if (profilePictureBuffer) {
+        updateFields.profile_picture = profilePictureBuffer;
+      }
+
+      if (coverPictureBuffer) {
+        updateFields.cover_picture = coverPictureBuffer;
+      }
+
+      await User.update(updateFields, {
+        where: {
+          id: req.current_user.id,
         },
-        {
-          where: {
-            id: req.current_user.id,
-          },
-        }
-      );
+      });
 
       // Optionally, you can send back the updated user details
       const updatedUser = await User.findByPk(req.current_user.id);
