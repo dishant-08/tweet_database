@@ -42,11 +42,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       profile_picture: {
-        type: DataTypes.STRING(1024),
+        type: DataTypes.BLOB, // Use DataTypes.BLOB without specifying length
         allowNull: true,
       },
       cover_picture: {
-        type: DataTypes.STRING(1024),
+        type: DataTypes.BLOB, // Use DataTypes.BLOB without specifying length
         allowNull: true,
       },
       date_of_birth: {

@@ -10,7 +10,9 @@ const cors = require("cors");
 const app = express(); // Instance of the server
 const port = process.env.PORT;
 // app.use(cors());
+const multer = require("multer");
 
+// const upload = multer({ dest: "uploads/" });
 app.use(express.json());
 app.use(cookieParser());
 // origin: [
@@ -282,29 +284,60 @@ app.get("/api/getUserbyId/:id", authenticateUser, async (req, res) => {
   }
 });
 
-app.put("/api/editUser", authenticateUser, async (req, res) => {
-  try {
-    await User.update(
-      {
-        display_name: req.body.display_name,
-        bio: req.body.bio,
-        location: req.body.location,
-        website: req.body.website,
-        profile_picture: req.body.profile_picture,
-        cover_picture: req.body.cover_picture,
-      },
-      {
-        where: {
-          id: req.current_user.id,
+const storage = multer.memoryStorage(); // Store files in memory as buffers
+const upload = multer({ storage: storage });
+
+// ...
+
+app.put(
+  "/api/editUser",
+  authenticateUser,
+  upload.fields([
+    { name: "profile_picture", maxCount: 1 },
+    { name: "cover_picture", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const { display_name, bio, location, website } = req.body;
+
+      // Check if files were uploaded
+      const profilePicture = req.files["profile_picture"]
+        ? req.files["profile_picture"][0]
+        : null;
+      const coverPicture = req.files["cover_picture"]
+        ? req.files["cover_picture"][0]
+        : null;
+
+      // Your file handling logic here (e.g., saving to disk, processing, etc.)
+
+      // Update user information in the database
+      await User.update(
+        {
+          display_name,
+          bio,
+          location,
+          website,
+          profile_picture: profilePicture ? profilePicture.buffer : null,
+          cover_picture: coverPicture ? coverPicture.buffer : null,
         },
-      }
-    );
-    res.status(200).send({ message: "User updated successfully" });
-  } catch (error) {
-    console.error("Error updating user:", error);
-    res.status(500).send({ error: "Failed to update user" });
+        {
+          where: {
+            id: req.current_user.id,
+          },
+        }
+      );
+
+      // Optionally, you can send back the updated user details
+      const updatedUser = await User.findByPk(req.current_user.id);
+      res
+        .status(200)
+        .send({ message: "User updated successfully", user: updatedUser });
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).send({ error: "Failed to update user" });
+    }
   }
-});
+);
 
 app.get("/api/getUserbyId/:id", authenticateUser, async (req, res) => {
   const curr_user_id = req.params.id;
@@ -324,29 +357,29 @@ app.get("/api/getUserbyId/:id", authenticateUser, async (req, res) => {
   }
 });
 
-app.put("/api/editUser", authenticateUser, async (req, res) => {
-  try {
-    await User.update(
-      {
-        display_name: req.body.display_name,
-        bio: req.body.bio,
-        location: req.body.location,
-        website: req.body.website,
-        profile_picture: req.body.profile_picture,
-        cover_picture: req.body.cover_picture,
-      },
-      {
-        where: {
-          id: req.current_user.id,
-        },
-      }
-    );
-    res.status(200).send({ message: "User updated successfully" });
-  } catch (error) {
-    console.error("Error updating user:", error);
-    res.status(500).send({ error: "Failed to update user" });
-  }
-});
+// app.put("/api/editUser", authenticateUser, async (req, res) => {
+//   try {
+//     await User.update(
+//       {
+//         display_name: req.body.display_name,
+//         bio: req.body.bio,
+//         location: req.body.location,
+//         website: req.body.website,
+//         profile_picture: req.body.profile_picture,
+//         cover_picture: req.body.cover_picture,
+//       },
+//       {
+//         where: {
+//           id: req.current_user.id,
+//         },
+//       }
+//     );
+//     res.status(200).send({ message: "User updated successfully" });
+//   } catch (error) {
+//     console.error("Error updating user:", error);
+//     res.status(500).send({ error: "Failed to update user" });
+//   }
+// });
 
 app.get("/api/geteditcuruser", authenticateUser, async (req, res) => {
   try {
