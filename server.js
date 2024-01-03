@@ -341,6 +341,7 @@ app.get("/api/getUserbyId/:id", authenticateUser, async (req, res) => {
     res.status(200).json({
       currUser: UserDetails.username,
       disName: UserDetails.display_name,
+      dp: UserDetails.profile_picture,
     });
   } catch (error) {
     console.error("Error at Fetching user", error);
