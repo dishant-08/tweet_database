@@ -11,6 +11,7 @@ const app = express(); // Instance of the server
 const port = process.env.PORT;
 // app.use(cors());
 const multer = require("multer");
+// const post = require("./models/post.js");
 
 // const upload = multer({ dest: "uploads/" });
 app.use(express.json());
@@ -142,6 +143,7 @@ app.post("/api/follow", authenticateUser, async (req, res) => {
     res.status(500).send({ error: "Failed to follow" });
   }
 });
+
 app.post("/api/unfollow", authenticateUser, async (req, res) => {
   try {
     await follow.destroy({
@@ -186,6 +188,35 @@ app.post("/api/like", authenticateUser, async (req, res) => {
     res.status(500).send({ error: "Failed to liked post" });
   }
 });
+
+app.post("/api/retweet/:id", authenticateUser, async (req, res) => {
+  const curr_post_id = req.params.id;
+  try {
+    await Post.create({
+      repost_id: curr_post_id,
+      posted_at: new Date(),
+      user_id: req.current_user.id,
+    });
+    res.status(201).send({ message: "rePost Created" });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).send({ error: "Failed to create repost" });
+  }
+});
+
+app.delete("/api/unretweet/:id", authenticateUser, async (req, res) => {
+  const curr_post_id = req.params.id;
+  try {
+    await Post.destroy({
+      where: { user_id: req.current_user.id, repost_id: curr_post_id },
+    });
+    res.status(204).send({ message: "Post sucessfully unrepost " });
+  } catch (error) {
+    console.error("Error  in Unrepost the post:", error);
+    res.status(500).send({ error: "Failed to Unrepost post" });
+  }
+});
+
 app.delete("/api/unlike/:id", authenticateUser, async (req, res) => {
   const curr_post_id = req.params.id;
   try {
@@ -219,6 +250,27 @@ app.get("/api/getLike/:id", authenticateUser, async (req, res) => {
     res.status(500).send({ error: "Failed to fetch liked post" });
   }
 });
+app.get("/api/getretweet/:id", authenticateUser, async (req, res) => {
+  const curr_post_id = req.params.id;
+  try {
+    const RepostCount = await Post.count({
+      where: {
+        repost_id: curr_post_id,
+      },
+    });
+    const RepostEntry = await Post.findOne({
+      where: {
+        user_id: req.current_user.id,
+        repost_id: curr_post_id,
+      },
+    });
+    res.status(200).json({ repostCount: RepostCount, isRePost: !!RepostEntry });
+  } catch (error) {
+    console.error("Error at Fetching repost Count", error);
+    res.status(500).send({ error: "Failed to fetch repost" });
+  }
+});
+
 app.get("/api/curuser", authenticateUser, async (req, res) => {
   try {
     const UserDetails = await User.findOne({
@@ -260,7 +312,19 @@ app.get("/api/getUser/:username", authenticateUser, async (req, res) => {
         username: curr_user_username,
       },
     });
-    res.status(200).json({ user: UserDetails });
+    const following = await follow.count({
+      where: {
+        follower_user_id: UserDetails.id,
+      },
+    });
+    const follower = await follow.count({
+      where: {
+        following_user_id: UserDetails.id,
+      },
+    });
+    res
+      .status(200)
+      .json({ user: UserDetails, follower: follower, following: following });
   } catch (error) {
     console.error("Error at Fetching user", error);
     res.status(500).send({ error: "Failed to fetch user" });
