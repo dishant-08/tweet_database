@@ -92,6 +92,38 @@ app.post("/api/login", async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+app.post("/api/guest-login", async (req, res) => {
+  // console.log("Request Body:", req.body); // Add this line for debugging
+  // const { email, password } = req.body;
+  const email = "randomEmail@example.com";
+  try {
+    const abhiWlaUser = await User.findOne({ where: { email } });
+    // if (!abhiWlaUser) {
+    //   return res.status(400).send("Invalid email");
+    // }
+
+    // const validPassword = await bcrypt.compare(
+    //   password,
+    //   abhiWlaUser.password_hash
+    // );
+
+    // if (!validPassword) {
+    //   return res.status(404).send("Invalid Password");
+    // }
+
+    res.cookie("cur_user", abhiWlaUser.id, {
+      httpOnly: true,
+      maxAge: 3600000,
+      secure: true, // Required for "None" sameSite in most browsers
+      sameSite: "None",
+    });
+
+    res.status(200).send("Logged in Successfully");
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).send("Server Error");
+  }
+});
 
 const authenticateUser = async (req, res, next) => {
   const validUser = req.cookies.cur_user;
