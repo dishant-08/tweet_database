@@ -96,20 +96,21 @@ app.post("/api/guest-login", async (req, res) => {
   // console.log("Request Body:", req.body); // Add this line for debugging
   // const { email, password } = req.body;
   const email = "randomEmail@example.com";
+  const password = "randomPassword";
   try {
     const abhiWlaUser = await User.findOne({ where: { email } });
-    // if (!abhiWlaUser) {
-    //   return res.status(400).send("Invalid email");
-    // }
+    if (!abhiWlaUser) {
+      return res.status(400).send("Invalid email");
+    }
 
-    // const validPassword = await bcrypt.compare(
-    //   password,
-    //   abhiWlaUser.password_hash
-    // );
+    const validPassword = await bcrypt.compare(
+      password,
+      abhiWlaUser.password_hash
+    );
 
-    // if (!validPassword) {
-    //   return res.status(404).send("Invalid Password");
-    // }
+    if (!validPassword) {
+      return res.status(404).send("Invalid Password");
+    }
 
     res.cookie("cur_user", abhiWlaUser.id, {
       httpOnly: true,
