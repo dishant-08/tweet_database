@@ -143,12 +143,39 @@ const authenticateUser = async (req, res, next) => {
 
 app.get("/api/feed", authenticateUser, async (req, res) => {
   try {
-    const posts = await Post.findAll();
+    const posts = await Post.findAll({
+      where: {
+        reply_id: null,
+        repost_id: null,
+      },
+    });
     res.status(200).json({ posts: posts, email: req.current_user.email });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch posts" });
   }
 });
+app.get("/api/replyfeed/:id", authenticateUser, async (req, res) => {
+  const curr_post_id = req.params.id;
+  try {
+    const posts = await Post.findAll({
+      where: {
+        reply_id: curr_post_id,
+      },
+    });
+    res.status(200).json({ posts: posts, email: req.current_user.email });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+});
+
+// app.get("/api/feed", authenticateUser, async (req, res) => {
+//   try {
+//     const posts = await Post.findAll();
+//     res.status(200).json({ posts: posts, email: req.current_user.email });
+//   } catch (error) {
+//     res.status(500).json({ error: "Failed to fetch posts" });
+//   }
+// });
 
 app.post("/api/post", authenticateUser, async (req, res) => {
   try {
@@ -161,6 +188,21 @@ app.post("/api/post", authenticateUser, async (req, res) => {
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).send({ error: "Failed to create post" });
+  }
+});
+app.post("/api/reply/:id", authenticateUser, async (req, res) => {
+  const curr_post_id = req.params.id;
+  try {
+    await Post.create({
+      reply_id: curr_post_id,
+      content: req.body.koko,
+      posted_at: new Date(),
+      user_id: req.current_user.id,
+    });
+    res.status(201).send({ message: "reply Created" });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).send({ error: "Failed to create reply" });
   }
 });
 
