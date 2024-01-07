@@ -172,6 +172,22 @@ app.get("/api/replyfeed/:id", authenticateUser, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch posts" });
   }
 });
+app.get("/api/userfeed/:id", authenticateUser, async (req, res) => {
+  const curr_post_id = req.params.id;
+  try {
+    const posts = await Post.findAll({
+      where: {
+        user_id: curr_post_id,
+        reply_id: null,
+        repost_id: null,
+      },
+    });
+
+    res.status(200).json({ posts: posts });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+});
 
 // app.get("/api/feed", authenticateUser, async (req, res) => {
 //   try {
