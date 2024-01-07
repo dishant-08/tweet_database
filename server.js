@@ -162,7 +162,12 @@ app.get("/api/replyfeed/:id", authenticateUser, async (req, res) => {
         reply_id: curr_post_id,
       },
     });
-    res.status(200).json({ posts: posts, email: req.current_user.email });
+    const count = await Post.count({
+      where: {
+        reply_id: curr_post_id,
+      },
+    });
+    res.status(200).json({ posts: posts, count: count });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch posts" });
   }
