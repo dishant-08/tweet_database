@@ -590,6 +590,25 @@ app.get("/api/geteditcuruser", authenticateUser, async (req, res) => {
   }
 });
 
+app.post("/openai-request", async (req, res) => {
+  try {
+    const apiUrl = "https://api.openai.com/v1/chat/completions";
+    const apiKey = process.env.VITE_API_KEY;
+
+    const response = await axios.post(apiUrl, req.body, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 app.listen(port, () => {
   console.log("Server is running on port", port);
 });
