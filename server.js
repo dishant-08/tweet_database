@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 const cors = require("cors");
+const OpenAI = require("openai");
 
 const app = express(); // Instance of the server
 const port = process.env.PORT;
@@ -590,19 +591,37 @@ app.get("/api/geteditcuruser", authenticateUser, async (req, res) => {
   }
 });
 
-app.post("/openai-request", authenticateUser, async (req, res) => {
-  try {
-    const apiUrl = "https://api.openai.com/v1/chat/completions";
-    const apiKey = process.env.VITE_API_KEY;
+const openai = new OpenAI({ apiKey: process.env.VITE_API_KEY });
 
-    const response = await axios.post(apiUrl, req.body, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
+// Define the route for text completion
+app.get("/complete-text", authenticateUser, async (req, res) => {
+  // Extract the user input from the request query parameters
+  // const userInput = req.query.input;
+  const userInput = `Generate Short and concise Twitter Post about ${req.query.input}`;
+
+  // Validate the user input
+  if (!userInput) {
+    return res.status(400).send("Missing input query parameter.");
+  }
+
+  try {
+    // Send a request to the OpenAI API to complete the text
+    const chatCompletion = await openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: "You are a Social Media Manager and Expert at Viral Tweets.",
+        },
+        { role: "user", content: userInput },
+      ],
+      model: "gpt-3.5-turbo",
     });
 
-    res.json(response.data);
+    // Extract the completed text from the OpenAI API response
+    const completedText = chatCompletion.choices[0].message.content;
+
+    // Send the completed text as the response
+    res.json({ completedText });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
