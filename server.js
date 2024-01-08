@@ -590,7 +590,7 @@ app.get("/api/geteditcuruser", authenticateUser, async (req, res) => {
   }
 });
 
-app.post("/openai-request", async (req, res) => {
+app.post("/openai-request", authenticateUser, async (req, res) => {
   try {
     const apiUrl = "https://api.openai.com/v1/chat/completions";
     const apiKey = process.env.VITE_API_KEY;
