@@ -13,6 +13,9 @@ const port = process.env.PORT;
 const multer = require("multer");
 // const post = require("./models/post.js");
 
+const NodeCache = require("node-cache");
+const myCache = new NodeCache({ stdTTL: 300 });
+
 // const upload = multer({ dest: "uploads/" });
 app.use(express.json());
 app.use(cookieParser());
@@ -79,6 +82,9 @@ app.post("/api/login", async (req, res) => {
       return res.status(404).send("Invalid Password");
     }
 
+    const cacheKey = `userDetails_${abhiWlaUser.id}`;
+    myCache.del(cacheKey);
+
     res.cookie("cur_user", abhiWlaUser.id, {
       httpOnly: true,
       maxAge: 3600000,
@@ -111,6 +117,9 @@ app.post("/api/guest-login", async (req, res) => {
     if (!validPassword) {
       return res.status(404).send("Invalid Password");
     }
+
+    const cacheKey = `userDetails_${abhiWlaUser.id}`;
+    myCache.del(cacheKey);
 
     res.cookie("cur_user", abhiWlaUser.id, {
       httpOnly: true,
@@ -368,12 +377,31 @@ app.get("/api/getretweet/:id", authenticateUser, async (req, res) => {
 });
 
 app.get("/api/curuser", authenticateUser, async (req, res) => {
+  const cacheKey = `userDetails_${req.current_user.id}`;
+
+  // Check the cache first
+  const cachedUserDetails = myCache.get(cacheKey);
+  if (cachedUserDetails) {
+    console.log("User details retrieved from cache");
+    return res.status(200).json(cachedUserDetails);
+  }
+
   try {
+    // If not in cache, fetch user details from the database
     const UserDetails = await User.findOne({
       where: {
         id: req.current_user.id,
       },
     });
+
+    // Cache the user details for future requests
+    myCache.set(cacheKey, {
+      id: UserDetails.id,
+      currUser: UserDetails.username,
+      disName: UserDetails.display_name,
+      dp: UserDetails.profile_picture,
+    });
+
     res.status(200).json({
       id: UserDetails.id,
       currUser: UserDetails.username,
