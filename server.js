@@ -1,5 +1,5 @@
 const express = require("express");
-// const sequelize = require("sequelize");
+const sequelize = require("sequelize");
 const { User, Post, like, follow } = require("./models");
 const db = require("./models/index.js");
 const cookieParser = require("cookie-parser");
@@ -625,6 +625,100 @@ app.get("/complete-text", authenticateUser, async (req, res) => {
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+const generateVerificationOtp = () => {
+  return Math.floor(100000 + Math.random() * 900000);
+};
+
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  host: "smtp.gmail.com",
+  // host: process.env.SMTP_HOST,
+  //  port:process.env.SMPT_PORT,
+  secure: false,
+  auth: {
+    user: process.env.MAIL_ID,
+    pass: process.env.MAIL_PASS,
+  },
+});
+
+app.post("/sendmail", async (req, res) => {
+  VerificationOpt = generateVerificationOtp();
+  res.status(303).send(`${VerificationOpt}`);
+
+  const mailOptions = {
+    from: process.env.SMTP_MAIL,
+    to: req.body.email,
+    subject: "Your 100x Verification Code",
+    text: `Welcome to 100x microblogging platform ! Your verification code is ${VerificationOpt} `,
+  };
+
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error, info);
+    } else {
+      console.log("Email send successfully!");
+    }
+  });
+});
+
+app.post("/verifymail", async (req, res) => {
+  if (VerificationOpt == req.body.otp) {
+    res.status(230).send({ msg: "Your are verified" });
+  } else {
+    res.status(530).send({ msg: "OTP is wrong" });
+  }
+});
+
+// res.send(fool);
+// Assuming your follow model has a belongsTo association with the User model
+follow.belongsTo(User, {
+  foreignKey: "following_user_id",
+  as: "followingUser",
+});
+
+app.post("/followingfeed", authenticateUser, async (req, res) => {
+  try {
+    // Retrieve followers along with associated users
+    const followers = await follow.findAll({
+      where: {
+        follower_user_id: req.current_user.id,
+      },
+      include: [
+        {
+          model: User,
+          as: "followingUser",
+          attributes: ["id"], // Include only necessary attributes
+        },
+      ],
+    });
+
+    // Extract the following_user_id from each follower instance
+    const followingUserIds = followers.map(
+      (follower) => follower.followingUser.id
+    );
+
+    // Retrieve posts related to the followers, ordered by posted_at in descending order
+    const posts = await Post.findAll({
+      where: {
+        user_id: { [sequelize.Op.in]: followingUserIds },
+        reply_id: null,
+        repost_id: null,
+      },
+      order: [["posted_at", "DESC"]], // Add this line for ordering
+    });
+
+    res.status(200).json({
+      user: followingUserIds,
+      posts,
+    });
+  } catch (error) {
+    console.error("Error at Fetching user and posts", error);
+    res.status(500).send({ error: "Failed to fetch user and posts" });
   }
 });
 
