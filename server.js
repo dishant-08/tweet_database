@@ -16,6 +16,7 @@ const multer = require("multer");
 
 const NodeCache = require("node-cache");
 const myCache = new NodeCache({ stdTTL: 300 });
+// const GetAllPost = new NodeCache({ stdTTL: 300 });
 
 // const upload = multer({ dest: "uploads/" });
 app.use(express.json());
@@ -152,6 +153,13 @@ const authenticateUser = async (req, res, next) => {
 };
 
 app.get("/api/feed", authenticateUser, async (req, res) => {
+  const allPosts = `getAllPost_${req.current_user.id}`;
+
+  const cachePost = myCache.get(allPosts);
+  if (cachePost) {
+    return res.status(200).json(cachePost);
+  }
+
   try {
     const posts = await Post.findAll({
       where: {
@@ -159,6 +167,12 @@ app.get("/api/feed", authenticateUser, async (req, res) => {
         repost_id: null,
       },
     });
+
+    myCache.set(allPosts, {
+      posts: posts,
+      email: req.current_user.email,
+    });
+
     res.status(200).json({ posts: posts, email: req.current_user.email });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch posts" });
@@ -215,6 +229,8 @@ app.post("/api/post", authenticateUser, async (req, res) => {
       posted_at: new Date(),
       user_id: req.current_user.id,
     });
+    const allPosts = `getAllPost_${req.current_user.id}`;
+    myCache.del(allPosts);
     res.status(201).send({ message: "Post Created" });
   } catch (error) {
     console.error("Error creating user:", error);
@@ -389,25 +405,25 @@ app.get("/api/curuser", authenticateUser, async (req, res) => {
 
   try {
     // If not in cache, fetch user details from the database
-    const UserDetails = await User.findOne({
-      where: {
-        id: req.current_user.id,
-      },
-    });
+    // const UserDetails = await User.findOne({
+    //   where: {
+    //     id: req.current_user.id,
+    //   },
+    // });
 
     // Cache the user details for future requests
     myCache.set(cacheKey, {
-      id: UserDetails.id,
-      currUser: UserDetails.username,
-      disName: UserDetails.display_name,
-      dp: UserDetails.profile_picture,
+      id: req.current_user.id,
+      currUser: req.current_user.username,
+      disName: req.current_user.display_name,
+      dp: req.current_user.profile_picture,
     });
 
     res.status(200).json({
-      id: UserDetails.id,
-      currUser: UserDetails.username,
-      disName: UserDetails.display_name,
-      dp: UserDetails.profile_picture,
+      id: req.current_user.id,
+      currUser: req.current_user.username,
+      disName: req.current_user.display_name,
+      dp: req.current_user.profile_picture,
     });
   } catch (error) {
     console.error("Error at Fetching user", error);
@@ -416,13 +432,13 @@ app.get("/api/curuser", authenticateUser, async (req, res) => {
 });
 app.get("/api/geteditcuruser", authenticateUser, async (req, res) => {
   try {
-    const UserDetails = await User.findOne({
-      where: {
-        id: req.current_user.id,
-      },
-    });
+    // const UserDetails = await User.findOne({
+    //   where: {
+    //     id: req.current_user.id,
+    //   },
+    // });
     res.status(200).json({
-      user: UserDetails,
+      user: req.current_user,
     });
   } catch (error) {
     console.error("Error at Fetching user", error);
