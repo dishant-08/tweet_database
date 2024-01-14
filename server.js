@@ -662,15 +662,21 @@ const nodemailer = require("nodemailer");
 //   },
 // });
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  secure: true, // Use SSL/TLS
-  auth: {
-    type: "login",
-    user: process.env.MAIL_ID,
-    pass: process.env.MAIL_PASS,
+let configOptions = {
+  host: "smtp.gmail.com", // Update with your SMTP server's host
+  port: 465,
+  secure: true,
+  tls: {
+    servername: "smtp.gmail.com",
+    // Add additional TLS options if needed
   },
-});
+  auth: {
+    user: process.env.MAIL_ID, // Your Gmail email address
+    pass: process.env.MAIL_PASS, // Your Gmail password or App Password
+  },
+};
+
+const transporter = nodemailer.createTransport(configOptions);
 
 let verificationOpt;
 
