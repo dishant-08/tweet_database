@@ -714,6 +714,8 @@ app.post("/verifymail", async (req, res) => {
   // if (!userEnteredOtp || typeof userEnteredOtp !== "string") {
   //   return res.status(400).send({ msg: "Invalid OTP format" });
   // }
+  console.log("enter ", userEnteredOtp);
+  console.log("code ", verificationOpt);
 
   if (verificationOpt === userEnteredOtp) {
     // Successful verification
