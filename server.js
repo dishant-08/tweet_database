@@ -721,12 +721,13 @@ app.post("/verifymail", async (req, res) => {
     console.log("Expected OTP:", verificationOpt);
 
     if (verificationOpt === userEnteredOtp) {
+      console.log("verified");
       // Successful verification
       // Consider resetting or invalidating the OTP to prevent multiple use
       verificationOpt = null;
       res.status(200).send({ msg: "You are verified" });
     } else {
-      // Incorrect OTP
+      console.log("Incorrect OTP");
       res.status(401).send({ msg: "Incorrect OTP" });
     }
   } catch (error) {
