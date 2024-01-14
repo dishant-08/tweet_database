@@ -662,14 +662,16 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+let verificationOpt;
+
 app.post("/sendmail", async (req, res) => {
   const email = req.body.email;
 
-  if (!isValidEmail(email)) {
-    return res.status(400).send("Invalid email address");
-  }
+  // if (!isValidEmail(email)) {
+  //   return res.status(400).send("Invalid email address");
+  // }
 
-  const verificationOpt = generateVerificationOtp();
+  verificationOpt = generateVerificationOtp();
 
   try {
     const mailOptions = {
@@ -692,9 +694,9 @@ app.post("/sendmail", async (req, res) => {
 app.post("/verifymail", async (req, res) => {
   const userEnteredOtp = req.body.otp;
 
-  if (!userEnteredOtp || typeof userEnteredOtp !== "string") {
-    return res.status(400).send({ msg: "Invalid OTP format" });
-  }
+  // if (!userEnteredOtp || typeof userEnteredOtp !== "string") {
+  //   return res.status(400).send({ msg: "Invalid OTP format" });
+  // }
 
   if (verificationOpt === userEnteredOtp) {
     // Successful verification
