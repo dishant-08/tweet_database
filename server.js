@@ -697,7 +697,7 @@ follow.belongsTo(User, {
   as: "followingUser",
 });
 
-app.post("/followingfeed", authenticateUser, async (req, res) => {
+app.get("/followingfeed", authenticateUser, async (req, res) => {
   try {
     // Retrieve followers along with associated users
     const followers = await follow.findAll({
