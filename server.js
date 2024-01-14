@@ -650,12 +650,20 @@ const generateVerificationOtp = () => {
 
 const nodemailer = require("nodemailer");
 
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   host: "smtp.gmail.com",
+//   // host: process.env.SMTP_HOST,
+//   //  port:process.env.SMPT_PORT,
+
+//   auth: {
+//     user: process.env.MAIL_ID,
+//     pass: process.env.MAIL_PASS,
+//   },
+// });
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
-  host: "smtp.gmail.com",
-  // host: process.env.SMTP_HOST,
-  //  port:process.env.SMPT_PORT,
-
   auth: {
     user: process.env.MAIL_ID,
     pass: process.env.MAIL_PASS,
