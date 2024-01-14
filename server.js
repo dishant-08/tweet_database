@@ -664,8 +664,9 @@ const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
-  secure: true,
+  secure: true, // Use SSL/TLS
   auth: {
+    type: "login",
     user: process.env.MAIL_ID,
     pass: process.env.MAIL_PASS,
   },
