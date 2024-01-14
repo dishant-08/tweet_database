@@ -720,7 +720,7 @@ app.post("/verifymail", async (req, res) => {
     console.log("Entered OTP:", userEnteredOtp);
     console.log("Expected OTP:", verificationOpt);
 
-    if (verificationOpt === userEnteredOtp) {
+    if (verificationOpt == userEnteredOtp) {
       console.log("verified");
       // Successful verification
       // Consider resetting or invalidating the OTP to prevent multiple use
