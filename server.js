@@ -709,22 +709,29 @@ app.post("/sendmail", async (req, res) => {
 });
 
 app.post("/verifymail", async (req, res) => {
-  const userEnteredOtp = req.body.otp;
+  try {
+    const userEnteredOtp = req.body.otp;
 
-  // if (!userEnteredOtp || typeof userEnteredOtp !== "string") {
-  //   return res.status(400).send({ msg: "Invalid OTP format" });
-  // }
-  console.log("enter ", userEnteredOtp);
-  console.log("code ", verificationOpt);
+    // Uncomment the following block if you want to check for invalid OTP format
+    // if (!userEnteredOtp || typeof userEnteredOtp !== "string") {
+    //   return res.status(400).send({ msg: "Invalid OTP format" });
+    // }
 
-  if (verificationOpt === userEnteredOtp) {
-    // Successful verification
-    // Consider resetting or invalidating the OTP to prevent multiple use
-    verificationOpt = null;
-    res.status(200).send({ msg: "You are verified" });
-  } else {
-    // Incorrect OTP
-    res.status(401).send({ msg: "Incorrect OTP" });
+    console.log("Entered OTP:", userEnteredOtp);
+    console.log("Expected OTP:", verificationOpt);
+
+    if (verificationOpt === userEnteredOtp) {
+      // Successful verification
+      // Consider resetting or invalidating the OTP to prevent multiple use
+      verificationOpt = null;
+      res.status(200).send({ msg: "You are verified" });
+    } else {
+      // Incorrect OTP
+      res.status(401).send({ msg: "Incorrect OTP" });
+    }
+  } catch (error) {
+    console.error("Error during OTP verification:", error);
+    res.status(500).send({ msg: "Internal Server Error" });
   }
 });
 
