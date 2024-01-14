@@ -663,6 +663,7 @@ const nodemailer = require("nodemailer");
 // });
 
 let configOptions = {
+  service: "gmail",
   host: "smtp.gmail.com", // Update with your SMTP server's host
   port: 465,
   secure: true,
