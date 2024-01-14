@@ -665,7 +665,7 @@ const nodemailer = require("nodemailer");
 let configOptions = {
   service: "gmail",
   host: "smtp.gmail.com", // Update with your SMTP server's host
-  port: 465,
+  // port: 465,
   secure: true,
   tls: {
     servername: "smtp.gmail.com",
@@ -701,7 +701,7 @@ app.post("/sendmail", async (req, res) => {
     await transporter.sendMail(mailOptions);
     console.log("Email sent successfully!");
 
-    res.status(303).send(`${verificationOpt}`);
+    res.status(200).send(`${verificationOpt}`);
   } catch (error) {
     console.error("Error sending email:", error);
     res.status(500).send("Error sending email");
