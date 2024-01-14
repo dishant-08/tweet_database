@@ -663,30 +663,47 @@ const transporter = nodemailer.createTransport({
 });
 
 app.post("/sendmail", async (req, res) => {
-  VerificationOpt = generateVerificationOtp();
-  res.status(303).send(`${VerificationOpt}`);
+  const email = req.body.email;
 
-  const mailOptions = {
-    from: process.env.SMTP_MAIL,
-    to: req.body.email,
-    subject: "Your 100x Verification Code",
-    text: `Welcome to 100x microblogging platform ! Your verification code is ${VerificationOpt} `,
-  };
+  if (!isValidEmail(email)) {
+    return res.status(400).send("Invalid email address");
+  }
 
-  transporter.sendMail(mailOptions, function (error, info) {
-    if (error) {
-      console.log(error, info);
-    } else {
-      console.log("Email send successfully!");
-    }
-  });
+  const verificationOpt = generateVerificationOtp();
+
+  try {
+    const mailOptions = {
+      from: process.env.SMTP_MAIL,
+      to: email,
+      subject: "Your 100x Verification Code",
+      text: `Welcome to 100x microblogging platform! Your verification code is ${verificationOpt}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully!");
+
+    res.status(303).send(`${verificationOpt}`);
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).send("Error sending email");
+  }
 });
 
 app.post("/verifymail", async (req, res) => {
-  if (VerificationOpt == req.body.otp) {
-    res.status(230).send({ msg: "Your are verified" });
+  const userEnteredOtp = req.body.otp;
+
+  if (!userEnteredOtp || typeof userEnteredOtp !== "string") {
+    return res.status(400).send({ msg: "Invalid OTP format" });
+  }
+
+  if (verificationOpt === userEnteredOtp) {
+    // Successful verification
+    // Consider resetting or invalidating the OTP to prevent multiple use
+    verificationOpt = null;
+    res.status(200).send({ msg: "You are verified" });
   } else {
-    res.status(530).send({ msg: "OTP is wrong" });
+    // Incorrect OTP
+    res.status(401).send({ msg: "Incorrect OTP" });
   }
 });
 
