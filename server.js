@@ -609,51 +609,19 @@ app.get("/api/geteditcuruser", authenticateUser, async (req, res) => {
 
 const openai = new OpenAI({ apiKey: process.env.VITE_API_KEY });
 
-// Define the route for text completion
-// app.get("/complete-text", authenticateUser, async (req, res) => {
-//   // Extract the user input from the request query parameters
-//   // const userInput = req.query.input;
-//   const userInput = `Generate Short and concise Twitter Post about ${req.query.input}`;
-
-//   // Validate the user input
-//   if (!userInput) {
-//     return res.status(400).send("Missing input query parameter.");
-//   }
-
-//   try {
-//     // Send a request to the OpenAI API to complete the text
-//     const chatCompletion = await openai.chat.completions.create({
-//       messages: [
-//         {
-//           role: "system",
-//           content: "You are a Social Media Manager and Expert at Viral Tweets.",
-//         },
-//         { role: "user", content: userInput },
-//       ],
-//       model: "gpt-3.5-turbo",
-//     });
-
-//     // Extract the completed text from the OpenAI API response
-//     const completedText = chatCompletion.choices[0].message.content;
-
-//     // Send the completed text as the response
-//     res.json({ completedText });
-//   } catch (error) {
-//     console.error("Error:", error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
-
 app.get("/complete-text", authenticateUser, async (req, res) => {
+  // Extract the user input from the request query parameters
+  // const userInput = req.query.input;
   const userInput = `Generate Short and concise Twitter Post about ${req.query.input}`;
 
+  // Validate the user input
   if (!userInput) {
     return res.status(400).send("Missing input query parameter.");
   }
 
   try {
-    const stream = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    // Send a request to the OpenAI API to complete the text
+    const chatCompletion = await openai.chat.completions.create({
       messages: [
         {
           role: "system",
@@ -661,21 +629,14 @@ app.get("/complete-text", authenticateUser, async (req, res) => {
         },
         { role: "user", content: userInput },
       ],
-      stream: true,
+      model: "gpt-3.5-turbo",
     });
 
-    res.write("Processing...");
+    // Extract the completed text from the OpenAI API response
+    const completedText = chatCompletion.choices[0].message.content;
 
-    for await (const chunk of stream) {
-      const completedText = chunk.choices[0]?.delta?.content || "";
-      const words = completedText.split(/\s+/);
-
-      for (const word of words) {
-        res.write(word + " ");
-        await new Promise((resolve) => setTimeout(resolve, 100)); // Adjust the delay as needed
-      }
-    }
-    res.end();
+    // Send the completed text as the response
+    res.json({ completedText });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
