@@ -18,7 +18,6 @@ const NodeCache = require("node-cache");
 const myCache = new NodeCache({ stdTTL: 300 });
 // const GetAllPost = new NodeCache({ stdTTL: 300 });
 
-// const upload = multer({ dest: "uploads/" });
 app.use(express.json());
 app.use(cookieParser());
 // origin: [
