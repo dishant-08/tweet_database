@@ -2,22 +2,31 @@
 
 
 
-![image](https://github.com/dishant-08/tweet_database/assets/60565337/95c3693c-409b-4106-b395-bbbdfa8ab4ad)
+
+![image](https://github.com/dishant-08/tweet_database/assets/60565337/cd70444c-79e2-4665-a4d2-08e1b34f437d)
+
 
 
 
 ## Users Table
 
 - **id**: Auto-incrementing identifier (`bigserial`).
-- **username**: User's username (`varchar`, max length 255, not null).
-- **email**: User's email address (`varchar`, max length 255, not null).
-- **display_name**: User's display name (`varchar`, max length 255, not null).
+- **username**: User's username (`character varying(255)`, not null).
+- **email**: User's email address (`character varying(255)`, not null).
+- **display_name**: User's display name (`character varying(255)`, not null).
 - **bio**: User's biography (`text`, nullable).
 - **createdAt**: Timestamp of creation (`timestamp with time zone`, not null).
 - **updatedAt**: Timestamp of the last update (`timestamp with time zone`, not null).
+- **password_hash**: Hashed password (`character varying(512)`, not null).
+- **location**: User's location (`character varying(50)`, nullable).
+- **website**: User's website (`character varying(100)`, nullable).
+- **date_of_birth**: User's date of birth (`character varying(255)`, nullable).
+- **profile_picture**: User's profile picture (`bytea`, nullable).
+- **cover_picture**: User's cover picture (`bytea`, nullable).
 
 **Constraints:**
 - Primary Key: `Users_pkey` (`id`).
+
 
 ## Posts Table
 
