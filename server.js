@@ -32,7 +32,8 @@ const {
   retweetPost,
   unretweetPost,
   unlikePost,
-  getLikeAndRetweetInfo,
+  getLikeCount,
+  getRetweetCount,
 } = require("./controllers/interactionController");
 
 const {
@@ -113,8 +114,8 @@ app.post("/api/like", authenticateUser, likePost);
 app.post("/api/retweet/:id", authenticateUser, retweetPost);
 app.delete("/api/unretweet/:id", authenticateUser, unretweetPost);
 app.delete("/api/unlike/:id", authenticateUser, unlikePost);
-app.get("/api/getLike/:id", authenticateUser, getLikeAndRetweetInfo);
-app.get("/api/getretweet/:id", authenticateUser, getLikeAndRetweetInfo);
+app.get("/api/getLike/:id", authenticateUser, getLikeCount); // Use the new endpoint
+app.get("/api/getretweet/:id", authenticateUser, getRetweetCount); // Use the new endpoint
 
 app.get("/api/curuser", authenticateUser, async (req, res) => {
   const cacheKey = `userDetails_${req.current_user.id}`;

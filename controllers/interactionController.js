@@ -59,34 +59,45 @@ const unlikePost = async (req, res) => {
   }
 };
 
-const getLikeAndRetweetInfo = async (req, res) => {
+const getLikeCount = async (req, res) => {
   const curr_post_id = req.params.id;
   try {
-    const likeCount = await like.count({
-      where: { post_id: curr_post_id },
+    const LikeCount = await like.count({
+      where: {
+        post_id: curr_post_id,
+      },
     });
-
-    const likeEntry = await like.findOne({
-      where: { post_id: curr_post_id, user_id: req.current_user.id },
+    const LikeEntry = await like.findOne({
+      where: {
+        post_id: curr_post_id,
+        user_id: req.current_user.id,
+      },
     });
-
-    const repostCount = await Post.count({
-      where: { repost_id: curr_post_id },
-    });
-
-    const repostEntry = await Post.findOne({
-      where: { user_id: req.current_user.id, repost_id: curr_post_id },
-    });
-
-    res.status(200).json({
-      likeCount,
-      likedPost: !!likeEntry,
-      repostCount,
-      isRePost: !!repostEntry,
-    });
+    res.status(200).json({ count: LikeCount, likedPost: !!LikeEntry });
   } catch (error) {
-    console.error("Error fetching like and repost info:", error);
-    res.status(500).send({ error: "Failed to fetch like and repost info" });
+    console.error("Error at Fetching Like Count", error);
+    res.status(500).send({ error: "Failed to fetch liked post" });
+  }
+};
+
+const getRetweetCount = async (req, res) => {
+  const curr_post_id = req.params.id;
+  try {
+    const RepostCount = await Post.count({
+      where: {
+        repost_id: curr_post_id,
+      },
+    });
+    const RepostEntry = await Post.findOne({
+      where: {
+        user_id: req.current_user.id,
+        repost_id: curr_post_id,
+      },
+    });
+    res.status(200).json({ repostCount: RepostCount, isRePost: !!RepostEntry });
+  } catch (error) {
+    console.error("Error at Fetching repost Count", error);
+    res.status(500).send({ error: "Failed to fetch repost" });
   }
 };
 
@@ -95,5 +106,6 @@ module.exports = {
   retweetPost,
   unretweetPost,
   unlikePost,
-  getLikeAndRetweetInfo,
+  getLikeCount,
+  getRetweetCount,
 };
