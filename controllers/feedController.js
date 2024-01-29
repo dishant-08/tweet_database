@@ -1,4 +1,5 @@
 const { User, Post, like, follow } = require("../models");
+const { Worker } = require("worker_threads");
 // const NodeCache = require("node-cache");
 // const myCache = new NodeCache({ stdTTL: 300 });
 
@@ -13,21 +14,27 @@ const getFeed = async (req, res) => {
   }
 
   try {
-    const posts = await Post.findAll({
-      where: {
-        reply_id: null,
-        repost_id: null,
-      },
+    const workerData = {
+      userId: req.current_user.id,
+    };
+
+    const worker = new Worker("./controllers/feedWorker.js", { workerData });
+
+    worker.on("message", (posts) => {
+      myCache.set(allPosts, {
+        posts,
+        email: req.current_user.email,
+      });
+
+      res.status(200).json({ posts, email: req.current_user.email });
     });
 
-    myCache.set(allPosts, {
-      posts: posts,
-      email: req.current_user.email,
+    worker.on("error", (error) => {
+      console.error("Error in worker thread:", error);
+      res.status(500).json({ error: "Failed to fetch feed" });
     });
-
-    res.status(200).json({ posts: posts, email: req.current_user.email });
   } catch (error) {
-    console.error("Error fetching feed:", error);
+    console.error("Error starting worker thread:", error);
     res.status(500).json({ error: "Failed to fetch feed" });
   }
 };
