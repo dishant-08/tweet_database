@@ -72,7 +72,7 @@ app.get("/healthcheck", async (req, res) => {
     await db.sequelize.authenticate();
     // Sync models with the database
     // await db.sequelize.sync();
-    console.log("Database synced");
+    // console.log("Database synced");
     res.status(200).send("I'm healthy");
   } catch (error) {
     console.error("Database connection error:", error);
@@ -89,7 +89,7 @@ const authenticateUser = async (req, res, next) => {
   }
   try {
     req.current_user = await User.findOne({ where: { id: validUser } });
-    console.log(req.current_user);
+    // console.log(req.current_user);
     next();
   } catch (error) {
     res.status(401).send("Invalid Token");
@@ -123,7 +123,7 @@ app.get("/api/curuser", authenticateUser, async (req, res) => {
   // Check the cache first
   const cachedUserDetails = myCache.get(cacheKey);
   if (cachedUserDetails) {
-    console.log("User details retrieved from cache");
+    // console.log("User details retrieved from cache");
     return res.status(200).json(cachedUserDetails);
   }
 
@@ -310,7 +310,7 @@ app.post("/sendmail", async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully!");
+    // console.log("Email sent successfully!");
 
     res.status(200).send(`${verificationOpt}`);
   } catch (error) {
@@ -328,8 +328,8 @@ app.post("/verifymail", async (req, res) => {
     //   return res.status(400).send({ msg: "Invalid OTP format" });
     // }
 
-    console.log("Entered OTP:", userEnteredOtp);
-    console.log("Expected OTP:", verificationOpt);
+    // console.log("Entered OTP:", userEnteredOtp);
+    // console.log("Expected OTP:", verificationOpt);
 
     if (verificationOpt == userEnteredOtp) {
       console.log("verified");
