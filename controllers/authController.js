@@ -57,6 +57,23 @@ const login = async (req, res) => {
   }
 };
 
+const logout = async (req, res) => {
+  try {
+    // Clear the cookie by setting its value to an empty string and setting its maxAge to 0
+    res.cookie("cur_user", "", {
+      httpOnly: true,
+      maxAge: 0,
+      secure: true, // Required for "None" sameSite in most browsers
+      sameSite: "None",
+    });
+
+    res.status(200).send("Logged out successfully");
+  } catch (error) {
+    console.error("Error during logout:", error);
+    res.status(500).send("Server Error");
+  }
+};
+
 const guestLogin = async (req, res) => {
   const email = "randomEmail@example.com";
   const password = "randomPassword";
@@ -108,4 +125,11 @@ const authenticateUser = async (req, res, next) => {
   }
 };
 
-module.exports = { signup, login, guestLogin, myCache, authenticateUser };
+module.exports = {
+  signup,
+  login,
+  logout,
+  guestLogin,
+  myCache,
+  authenticateUser,
+};
