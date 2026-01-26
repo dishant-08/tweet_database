@@ -3,6 +3,7 @@
 const { User, Post, like, follow } = require("../models");
 const authenticateUser = require("../middleware/authenticateUser");
 const sequelize = require("sequelize");
+const { enrichPostsWithData } = require("./feedController");
 
 const followUser = async (req, res) => {
   try {
@@ -78,12 +79,14 @@ const followingFeed = async (req, res) => {
         reply_id: null,
         repost_id: null,
       },
-      order: [["posted_at", "DESC"]], // Add this line for ordering
+      order: [["posted_at", "DESC"]],
     });
+
+    const enrichedPosts = await enrichPostsWithData(posts, req.current_user.id);
 
     res.status(200).json({
       user: followingUserIds,
-      posts,
+      posts: enrichedPosts,
     });
   } catch (error) {
     console.error("Error at Fetching user and posts", error);
