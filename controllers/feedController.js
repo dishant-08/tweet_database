@@ -31,7 +31,10 @@ const enrichPostsWithData = async (posts, currentUserId) => {
     where: { post_id: { [Op.in]: postIds } },
     attributes: [
       "post_id",
-      [require("sequelize").fn("COUNT", require("sequelize").col("post_id")), "count"],
+      [
+        require("sequelize").fn("COUNT", require("sequelize").col("post_id")),
+        "count",
+      ],
     ],
     group: ["post_id"],
     raw: true,
@@ -54,7 +57,10 @@ const enrichPostsWithData = async (posts, currentUserId) => {
     where: { repost_id: { [Op.in]: postIds } },
     attributes: [
       "repost_id",
-      [require("sequelize").fn("COUNT", require("sequelize").col("repost_id")), "count"],
+      [
+        require("sequelize").fn("COUNT", require("sequelize").col("repost_id")),
+        "count",
+      ],
     ],
     group: ["repost_id"],
     raw: true,
@@ -77,7 +83,10 @@ const enrichPostsWithData = async (posts, currentUserId) => {
     where: { reply_id: { [Op.in]: postIds } },
     attributes: [
       "reply_id",
-      [require("sequelize").fn("COUNT", require("sequelize").col("reply_id")), "count"],
+      [
+        require("sequelize").fn("COUNT", require("sequelize").col("reply_id")),
+        "count",
+      ],
     ],
     group: ["reply_id"],
     raw: true,
@@ -183,7 +192,7 @@ const getUserFeed = async (req, res) => {
 const createPost = async (req, res) => {
   try {
     await Post.create({
-      content: req.body.koko,
+      content: req.body.content,
       posted_at: new Date(),
       user_id: req.current_user.id,
     });
@@ -201,7 +210,7 @@ const createReply = async (req, res) => {
   try {
     await Post.create({
       reply_id: curr_post_id,
-      content: req.body.koko,
+      content: req.body.content,
       posted_at: new Date(),
       user_id: req.current_user.id,
     });
