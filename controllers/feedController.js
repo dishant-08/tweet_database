@@ -117,20 +117,18 @@ const enrichPostsWithData = async (posts, currentUserId) => {
 };
 
 const getFeed = async (req, res) => {
-  const allPosts = `getAllPost_${req.current_user.id}`;
-
-  const cachePost = myCache.get(allPosts);
-  if (cachePost) {
-    return res.status(200).json(cachePost);
-  }
+  const limit = parseInt(req.query.limit) || 8;
+  const offset = parseInt(req.query.offset) || 0;
 
   try {
-    const posts = await Post.findAll({
+    const { count, rows: posts } = await Post.findAndCountAll({
       where: {
         reply_id: null,
         repost_id: null,
       },
       order: [["posted_at", "DESC"]],
+      limit,
+      offset,
     });
 
     const enrichedPosts = await enrichPostsWithData(posts, req.current_user.id);
@@ -138,9 +136,14 @@ const getFeed = async (req, res) => {
     const responseData = {
       posts: enrichedPosts,
       email: req.current_user.email,
+      pagination: {
+        total: count,
+        offset,
+        limit,
+        hasMore: offset + posts.length < count,
+        nextOffset: offset + posts.length,
+      },
     };
-
-    myCache.set(allPosts, responseData);
 
     res.status(200).json(responseData);
   } catch (error) {

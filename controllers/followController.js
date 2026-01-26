@@ -52,6 +52,9 @@ follow.belongsTo(User, {
   as: "followingUser",
 });
 const followingFeed = async (req, res) => {
+  const limit = parseInt(req.query.limit) || 8;
+  const offset = parseInt(req.query.offset) || 0;
+
   try {
     // Retrieve followers along with associated users
     const followers = await follow.findAll({
@@ -73,13 +76,15 @@ const followingFeed = async (req, res) => {
     );
 
     // Retrieve posts related to the followers, ordered by posted_at in descending order
-    const posts = await Post.findAll({
+    const { count, rows: posts } = await Post.findAndCountAll({
       where: {
         user_id: { [sequelize.Op.in]: followingUserIds },
         reply_id: null,
         repost_id: null,
       },
       order: [["posted_at", "DESC"]],
+      limit,
+      offset,
     });
 
     const enrichedPosts = await enrichPostsWithData(posts, req.current_user.id);
@@ -87,6 +92,13 @@ const followingFeed = async (req, res) => {
     res.status(200).json({
       user: followingUserIds,
       posts: enrichedPosts,
+      pagination: {
+        total: count,
+        offset,
+        limit,
+        hasMore: offset + posts.length < count,
+        nextOffset: offset + posts.length,
+      },
     });
   } catch (error) {
     console.error("Error at Fetching user and posts", error);
