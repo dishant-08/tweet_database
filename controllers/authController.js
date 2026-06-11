@@ -7,20 +7,40 @@ const {
 } = require("../middleware/authenticateUser");
 const myCache = new NodeCache({ stdTTL: 300 });
 
+const USERNAME_RE = /^[a-zA-Z0-9_]{3,15}$/;
+
 const signup = async (req, res) => {
   try {
-    // Your signup logic
-    const hashedPassword = await bcrypt.hash(req.body.password, 10); // The second argument is the saltRounds
+    const { username, email, password } = req.body;
+    if (!USERNAME_RE.test(username || "")) {
+      return res.status(400).send({
+        error: "Username must be 3-15 characters: letters, numbers, underscore",
+      });
+    }
+    if (!email || !password || password.length < 8) {
+      return res
+        .status(400)
+        .send({ error: "Email and a password of at least 8 characters are required" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10); // The second argument is the saltRounds
 
     await User.create({
-      username: req.body.username,
-      email: req.body.email,
+      username,
+      email,
       display_name: req.body.display_name || req.body.name, // Use req.body.display_name if available, otherwise fallback to req.body.name
       date_of_birth: req.body.date_of_birth,
       password_hash: hashedPassword,
     });
     res.status(201).send({ message: "User Created" });
   } catch (error) {
+    if (error.name === "SequelizeUniqueConstraintError") {
+      const source = `${error.errors?.[0]?.path || ""} ${error.parent?.constraint || ""}`;
+      const message = source.includes("email")
+        ? "Email already registered"
+        : "Username already taken";
+      return res.status(409).send({ error: message });
+    }
     console.error("Error creating user:", error);
     res.status(500).send({ error: "Failed to create user" });
   }
