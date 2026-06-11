@@ -210,6 +210,9 @@ app.put(
         },
       });
 
+      // Cached user details are stale after any profile change.
+      myCache.del(`userDetails_${req.current_user.id}`);
+
       // Replaced images are deleted from storage best-effort.
       if (updateFields.profile_picture) {
         removeUserImageByUrl("avatars", req.current_user.profile_picture);

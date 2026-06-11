@@ -1,9 +1,7 @@
 // controllers/followController.js
-// const follow = require("./models"); // Import your follow model
-const { User, Post, like, follow } = require("../models");
-const authenticateUser = require("../middleware/authenticateUser");
-const sequelize = require("sequelize");
-const { enrichPostsWithData } = require("./feedController");
+const { follow } = require("../models");
+const { Op } = require("sequelize");
+const { enrichPostsWithData, fetchPostPage } = require("./feedController");
 
 const followUser = async (req, res) => {
   try {
@@ -47,60 +45,35 @@ const checkFollowStatus = async (req, res) => {
     res.status(500).send({ error: "Failed to get status" });
   }
 };
-follow.belongsTo(User, {
-  foreignKey: "following_user_id",
-  as: "followingUser",
-});
 const followingFeed = async (req, res) => {
-  const limit = parseInt(req.query.limit) || 8;
-  const offset = parseInt(req.query.offset) || 0;
-
   try {
-    // Retrieve followers along with associated users
-    const followers = await follow.findAll({
-      where: {
-        follower_user_id: req.current_user.id,
-      },
-      include: [
-        {
-          model: User,
-          as: "followingUser",
-          attributes: ["id"], // Include only necessary attributes
-        },
-      ],
+    const followRows = await follow.findAll({
+      where: { follower_user_id: req.current_user.id },
+      attributes: ["following_user_id"],
+      raw: true,
     });
+    const followingUserIds = followRows.map((row) => row.following_user_id);
 
-    // Extract the following_user_id from each follower instance
-    const followingUserIds = followers.map(
-      (follower) => follower.followingUser.id
-    );
-
-    // Retrieve posts related to the followers, ordered by posted_at in descending order
-    const { count, rows: posts } = await Post.findAndCountAll({
-      where: {
-        user_id: { [sequelize.Op.in]: followingUserIds },
+    const { posts, pagination } = await fetchPostPage(
+      {
+        user_id: { [Op.in]: followingUserIds },
         reply_id: null,
         repost_id: null,
       },
-      order: [["posted_at", "DESC"]],
-      limit,
-      offset,
-    });
+      req.query
+    );
 
     const enrichedPosts = await enrichPostsWithData(posts, req.current_user.id);
 
     res.status(200).json({
       user: followingUserIds,
       posts: enrichedPosts,
-      pagination: {
-        total: count,
-        offset,
-        limit,
-        hasMore: offset + posts.length < count,
-        nextOffset: offset + posts.length,
-      },
+      pagination,
     });
   } catch (error) {
+    if (error.status === 400) {
+      return res.status(400).json({ error: error.message });
+    }
     console.error("Error at Fetching user and posts", error);
     res.status(500).send({ error: "Failed to fetch user and posts" });
   }
