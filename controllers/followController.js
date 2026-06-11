@@ -59,6 +59,7 @@ const followingFeed = async (req, res) => {
         user_id: { [Op.in]: followingUserIds },
         reply_id: null,
         repost_id: null,
+        content: { [Op.ne]: null },
       },
       req.query
     );

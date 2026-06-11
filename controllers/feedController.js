@@ -204,10 +204,14 @@ const handleFeedError = (res, error, label) => {
   res.status(500).json({ error: `Failed to fetch ${label}` });
 };
 
+// Pure reposts have null content and are surfaced via repostCount, never as
+// rows, so every feed filters them out server-side.
+const CONTENT_PRESENT = { content: { [Op.ne]: null } };
+
 const getFeed = async (req, res) => {
   try {
     const { posts, pagination } = await fetchPostPage(
-      { reply_id: null, repost_id: null },
+      { reply_id: null, repost_id: null, ...CONTENT_PRESENT },
       req.query
     );
     const enrichedPosts = await enrichPostsWithData(posts, req.current_user.id);
@@ -226,7 +230,7 @@ const getReplyFeed = async (req, res) => {
   const curr_post_id = req.params.id;
   try {
     const posts = await Post.findAll({
-      where: { reply_id: curr_post_id },
+      where: { reply_id: curr_post_id, ...CONTENT_PRESENT },
       include: [AUTHOR_INCLUDE],
       order: [
         ["posted_at", "DESC"],
@@ -246,7 +250,7 @@ const getUserFeed = async (req, res) => {
   const curr_user_id = req.params.id;
   try {
     const { posts, pagination } = await fetchPostPage(
-      { user_id: curr_user_id, reply_id: null, repost_id: null },
+      { user_id: curr_user_id, reply_id: null, repost_id: null, ...CONTENT_PRESENT },
       req.query
     );
     const enrichedPosts = await enrichPostsWithData(posts, req.current_user.id);
