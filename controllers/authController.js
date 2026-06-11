@@ -1,7 +1,10 @@
 const bcrypt = require("bcrypt");
-// const User = require("../models/user");
-const { User, Post, like, follow } = require("../models");
+const { User } = require("../models");
 const NodeCache = require("node-cache");
+const {
+  issueAuthCookie,
+  clearAuthCookie,
+} = require("../middleware/authenticateUser");
 const myCache = new NodeCache({ stdTTL: 300 });
 
 const signup = async (req, res) => {
@@ -23,34 +26,41 @@ const signup = async (req, res) => {
   }
 };
 
+const authenticateWithPassword = async (res, email, password) => {
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    res.status(400).send("Invalid email");
+    return;
+  }
+
+  const validPassword = await bcrypt.compare(password, user.password_hash);
+  if (!validPassword) {
+    res.status(404).send("Invalid Password");
+    return;
+  }
+
+  myCache.del(`userDetails_${user.id}`);
+  issueAuthCookie(res, user);
+  res.status(200).send("Logged in Successfully");
+};
+
 const login = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const abhiWlaUser = await User.findOne({ where: { email } });
-    if (!abhiWlaUser) {
-      return res.status(400).send("Invalid email");
-    }
+    await authenticateWithPassword(res, email, password);
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).send("Server Error");
+  }
+};
 
-    const validPassword = await bcrypt.compare(
-      password,
-      abhiWlaUser.password_hash
+const guestLogin = async (req, res) => {
+  try {
+    await authenticateWithPassword(
+      res,
+      "randomEmail@example.com",
+      "randomPassword"
     );
-
-    if (!validPassword) {
-      return res.status(404).send("Invalid Password");
-    }
-
-    const cacheKey = `userDetails_${abhiWlaUser.id}`;
-    myCache.del(cacheKey);
-
-    res.cookie("cur_user", abhiWlaUser.id, {
-      httpOnly: true,
-      maxAge: 3600000,
-      secure: true, // Required for "None" sameSite in most browsers
-      sameSite: "None",
-    });
-
-    res.status(200).send("Logged in Successfully");
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).send("Server Error");
@@ -59,69 +69,11 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    // Clear the cookie by setting its value to an empty string and setting its maxAge to 0
-    res.cookie("cur_user", "", {
-      httpOnly: true,
-      maxAge: 0,
-      secure: true, // Required for "None" sameSite in most browsers
-      sameSite: "None",
-    });
-
+    clearAuthCookie(res);
     res.status(200).send("Logged out successfully");
   } catch (error) {
     console.error("Error during logout:", error);
     res.status(500).send("Server Error");
-  }
-};
-
-const guestLogin = async (req, res) => {
-  const email = "randomEmail@example.com";
-  const password = "randomPassword";
-  try {
-    const abhiWlaUser = await User.findOne({ where: { email } });
-    if (!abhiWlaUser) {
-      return res.status(400).send("Invalid email");
-    }
-
-    const validPassword = await bcrypt.compare(
-      password,
-      abhiWlaUser.password_hash
-    );
-
-    if (!validPassword) {
-      return res.status(404).send("Invalid Password");
-    }
-
-    const cacheKey = `userDetails_${abhiWlaUser.id}`;
-    myCache.del(cacheKey);
-
-    res.cookie("cur_user", abhiWlaUser.id, {
-      httpOnly: true,
-      maxAge: 3600000,
-      secure: true, // Required for "None" sameSite in most browsers
-      sameSite: "None",
-    });
-
-    res.status(200).send("Logged in Successfully");
-  } catch (error) {
-    console.error("Error during login:", error);
-    res.status(500).send("Server Error");
-  }
-};
-
-const authenticateUser = async (req, res, next) => {
-  const validUser = req.cookies.cur_user;
-
-  if (!validUser) {
-    return res.status(401).send("Unauthorized");
-  }
-
-  try {
-    req.current_user = await User.findOne({ where: { id: validUser } });
-    console.log(req.current_user);
-    next();
-  } catch (error) {
-    res.status(401).send("Invalid Token");
   }
 };
 
@@ -131,5 +83,4 @@ module.exports = {
   logout,
   guestLogin,
   myCache,
-  authenticateUser,
 };
