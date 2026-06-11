@@ -48,11 +48,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       profile_picture: {
-        type: DataTypes.BLOB, // Use DataTypes.BLOB without specifying length
+        type: DataTypes.STRING(1024), // public Supabase Storage URL
         allowNull: true,
       },
       cover_picture: {
-        type: DataTypes.BLOB, // Use DataTypes.BLOB without specifying length
+        type: DataTypes.STRING(1024), // public Supabase Storage URL
         allowNull: true,
       },
       date_of_birth: {

@@ -160,10 +160,21 @@ app.get("/api/geteditcuruser", authenticateUser, getEditCurrentUser);
 app.get("/api/getUser/:username", authenticateUser, getUserByUsername);
 app.get("/api/getUserbyId/:id", authenticateUser, getUserById);
 
-const storage = multer.memoryStorage(); // Store files in memory as buffers
-const upload = multer({ storage: storage });
+const {
+  uploadUserImage,
+  removeUserImageByUrl,
+  MIME_EXTENSIONS,
+} = require("./lib/supabase");
 
-// ...
+const storage = multer.memoryStorage(); // Store files in memory as buffers
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (MIME_EXTENSIONS[file.mimetype]) return cb(null, true);
+    cb(new Error(`Unsupported image type: ${file.mimetype}`));
+  },
+});
 
 app.put(
   "/api/editUser",
@@ -175,16 +186,9 @@ app.put(
   async (req, res) => {
     try {
       const { display_name, bio, location, website } = req.body;
+      const profileFile = req.files?.["profile_picture"]?.[0];
+      const coverFile = req.files?.["cover_picture"]?.[0];
 
-      // Check if files were uploaded
-      const profilePictureBuffer =
-        req.files["profile_picture"]?.[0]?.buffer || null;
-      const coverPictureBuffer =
-        req.files["cover_picture"]?.[0]?.buffer || null;
-
-      // Your file handling logic here (e.g., saving to disk, processing, etc.)
-
-      // Update user information in the database
       const updateFields = {
         display_name,
         bio,
@@ -192,13 +196,25 @@ app.put(
         website,
       };
 
-      // Only update image fields if new images are provided
-      if (profilePictureBuffer) {
-        updateFields.profile_picture = profilePictureBuffer;
-      }
-
-      if (coverPictureBuffer) {
-        updateFields.cover_picture = coverPictureBuffer;
+      // Upload new images to Supabase Storage; only the public URL is stored.
+      try {
+        if (profileFile) {
+          updateFields.profile_picture = await uploadUserImage(
+            "avatars",
+            req.current_user.id,
+            profileFile
+          );
+        }
+        if (coverFile) {
+          updateFields.cover_picture = await uploadUserImage(
+            "covers",
+            req.current_user.id,
+            coverFile
+          );
+        }
+      } catch (uploadError) {
+        console.error("Image upload failed:", uploadError.message);
+        return res.status(500).send({ error: uploadError.message });
       }
 
       await User.update(updateFields, {
@@ -207,8 +223,17 @@ app.put(
         },
       });
 
-      // Optionally, you can send back the updated user details
-      const updatedUser = await User.findByPk(req.current_user.id);
+      // Replaced images are deleted from storage best-effort.
+      if (updateFields.profile_picture) {
+        removeUserImageByUrl("avatars", req.current_user.profile_picture);
+      }
+      if (updateFields.cover_picture) {
+        removeUserImageByUrl("covers", req.current_user.cover_picture);
+      }
+
+      const updatedUser = await User.findByPk(req.current_user.id, {
+        attributes: { exclude: ["password_hash"] },
+      });
       res
         .status(200)
         .send({ message: "User updated successfully", user: updatedUser });
